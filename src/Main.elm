@@ -3,7 +3,7 @@ module Main exposing (..)
 import Browser
 import Components exposing (primaryBtnCls, viewButton)
 import Counter exposing (view)
-import Effect exposing (Effect)
+import Effect
 import Html exposing (div, h1, text)
 import Html.Attributes exposing (class)
 import Html.Events as Events
