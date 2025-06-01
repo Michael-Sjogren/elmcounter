@@ -1,6 +1,7 @@
 module Counter exposing (..)
 
 import Components exposing (primaryBtnCls, secondaryBtnCls, viewButton)
+import Effect
 import Html
 import Html.Attributes exposing (class)
 import Html.Events as Events
@@ -24,28 +25,23 @@ type Msg
     | GotRandomNum Int
 
 
-generateRandomInt : Int -> Int -> Cmd Msg
-generateRandomInt a b =
-    Random.generate GotRandomNum (Random.int a b)
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Effect.Effect Msg )
 update msg model =
     case msg of
         Increment ->
-            ( model + 1, Cmd.none )
+            ( model + 1, Effect.none )
 
         Decrement ->
-            ( model - 1, Cmd.none )
+            ( model - 1, Effect.none )
 
         Reset ->
-            ( 0, Cmd.none )
+            ( 0, Effect.none )
 
         Randomize ->
-            ( model, generateRandomInt -Random.maxInt Random.maxInt )
+            ( model, Effect.GenerateRandomNumber -Random.maxInt Random.maxInt GotRandomNum )
 
         GotRandomNum n ->
-            ( n, Cmd.none )
+            ( n, Effect.none )
 
 
 view : Model -> Html.Html Msg

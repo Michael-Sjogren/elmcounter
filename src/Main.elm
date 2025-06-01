@@ -3,6 +3,7 @@ module Main exposing (..)
 import Browser
 import Components exposing (primaryBtnCls, viewButton)
 import Counter exposing (view)
+import Effect exposing (Effect)
 import Html exposing (div, h1, text)
 import Html.Attributes exposing (class)
 import Html.Events as Events
@@ -34,14 +35,14 @@ update msg model =
                 ( counterA, aCmd ) =
                     Counter.update cmsg model.counterA
             in
-            ( { model | counterA = counterA }, Cmd.map MsgCounterA aCmd )
+            ( { model | counterA = counterA }, Effect.map MsgCounterA aCmd |> Effect.effectToCmd )
 
         MsgCounterB cmsg ->
             let
                 ( counterB, bCmd ) =
                     Counter.update cmsg model.counterB
             in
-            ( { model | counterB = counterB }, Cmd.map MsgCounterB bCmd )
+            ( { model | counterB = counterB }, Effect.map MsgCounterB bCmd |> Effect.effectToCmd )
 
         MsgResetAll ->
             let
@@ -52,10 +53,11 @@ update msg model =
                     Counter.update Counter.Reset model.counterB
             in
             ( { model | counterA = counterA, counterB = counterB }
-            , Cmd.batch
-                [ Cmd.map MsgCounterA aCmd
-                , Cmd.map MsgCounterB bCmd
+            , Effect.batch
+                [ Effect.map MsgCounterA aCmd
+                , Effect.map MsgCounterB bCmd
                 ]
+                |> Effect.effectToCmd
             )
 
         MsgRandomizeAll ->
@@ -67,10 +69,11 @@ update msg model =
                     Counter.update Counter.Randomize model.counterB
             in
             ( { model | counterA = counterA, counterB = counterB }
-            , Cmd.batch
-                [ Cmd.map MsgCounterA aCmd
-                , Cmd.map MsgCounterB bCmd
+            , Effect.batch
+                [ Effect.map MsgCounterA aCmd
+                , Effect.map MsgCounterB bCmd
                 ]
+                |> Effect.effectToCmd
             )
 
 

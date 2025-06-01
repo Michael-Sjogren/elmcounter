@@ -5253,9 +5253,11 @@ var $author$project$Main$MsgCounterB = function (a) {
 };
 var $author$project$Counter$Randomize = {$: 3};
 var $author$project$Counter$Reset = {$: 2};
-var $elm$core$Platform$Cmd$map = _Platform_map;
-var $author$project$Counter$GotRandomNum = function (a) {
-	return {$: 4, a: a};
+var $author$project$Effect$Batch = function (a) {
+	return {$: 0, a: a};
+};
+var $author$project$Effect$batch = function (effects) {
+	return $author$project$Effect$Batch(effects);
 };
 var $elm$random$Random$Generate = $elm$core$Basics$identity;
 var $elm$random$Random$Seed = F2(
@@ -5396,30 +5398,78 @@ var $elm$random$Random$int = F2(
 			}
 		};
 	});
-var $author$project$Counter$generateRandomInt = F2(
-	function (a, b) {
-		return A2(
-			$elm$random$Random$generate,
-			$author$project$Counter$GotRandomNum,
-			A2($elm$random$Random$int, a, b));
+var $author$project$Effect$effectToCmd = function (effect) {
+	switch (effect.$) {
+		case 0:
+			var effects = effect.a;
+			return $elm$core$Platform$Cmd$batch(
+				A2($elm$core$List$map, $author$project$Effect$effectToCmd, effects));
+		case 1:
+			return $elm$core$Platform$Cmd$none;
+		default:
+			var lo = effect.a;
+			var hi = effect.b;
+			var toMsg = effect.c;
+			return A2(
+				$elm$random$Random$generate,
+				toMsg,
+				A2($elm$random$Random$int, lo, hi));
+	}
+};
+var $author$project$Effect$GenerateRandomNumber = F3(
+	function (a, b, c) {
+		return {$: 2, a: a, b: b, c: c};
 	});
+var $author$project$Effect$None = {$: 1};
+var $elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
+var $author$project$Effect$map = F2(
+	function (inMsg, effect) {
+		switch (effect.$) {
+			case 0:
+				var effects = effect.a;
+				return $author$project$Effect$Batch(
+					A2(
+						$elm$core$List$map,
+						$author$project$Effect$map(inMsg),
+						effects));
+			case 1:
+				return $author$project$Effect$None;
+			default:
+				var lo = effect.a;
+				var hi = effect.b;
+				var toMsg = effect.c;
+				return A3(
+					$author$project$Effect$GenerateRandomNumber,
+					lo,
+					hi,
+					A2($elm$core$Basics$composeR, toMsg, inMsg));
+		}
+	});
+var $author$project$Counter$GotRandomNum = function (a) {
+	return {$: 4, a: a};
+};
 var $elm$random$Random$maxInt = 2147483647;
+var $author$project$Effect$none = $author$project$Effect$None;
 var $author$project$Counter$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
 			case 0:
-				return _Utils_Tuple2(model + 1, $elm$core$Platform$Cmd$none);
+				return _Utils_Tuple2(model + 1, $author$project$Effect$none);
 			case 1:
-				return _Utils_Tuple2(model - 1, $elm$core$Platform$Cmd$none);
+				return _Utils_Tuple2(model - 1, $author$project$Effect$none);
 			case 2:
-				return _Utils_Tuple2(0, $elm$core$Platform$Cmd$none);
+				return _Utils_Tuple2(0, $author$project$Effect$none);
 			case 3:
 				return _Utils_Tuple2(
 					model,
-					A2($author$project$Counter$generateRandomInt, -$elm$random$Random$maxInt, $elm$random$Random$maxInt));
+					A3($author$project$Effect$GenerateRandomNumber, -$elm$random$Random$maxInt, $elm$random$Random$maxInt, $author$project$Counter$GotRandomNum));
 			default:
 				var n = msg.a;
-				return _Utils_Tuple2(n, $elm$core$Platform$Cmd$none);
+				return _Utils_Tuple2(n, $author$project$Effect$none);
 		}
 	});
 var $author$project$Main$update = F2(
@@ -5434,7 +5484,8 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{l: counterA}),
-					A2($elm$core$Platform$Cmd$map, $author$project$Main$MsgCounterA, aCmd));
+					$author$project$Effect$effectToCmd(
+						A2($author$project$Effect$map, $author$project$Main$MsgCounterA, aCmd)));
 			case 0:
 				var cmsg = msg.a;
 				var _v2 = A2($author$project$Counter$update, cmsg, model.m);
@@ -5444,7 +5495,8 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{m: counterB}),
-					A2($elm$core$Platform$Cmd$map, $author$project$Main$MsgCounterB, bCmd));
+					$author$project$Effect$effectToCmd(
+						A2($author$project$Effect$map, $author$project$Main$MsgCounterB, bCmd)));
 			case 2:
 				var _v3 = A2($author$project$Counter$update, $author$project$Counter$Reset, model.m);
 				var counterB = _v3.a;
@@ -5456,12 +5508,13 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{l: counterA, m: counterB}),
-					$elm$core$Platform$Cmd$batch(
-						_List_fromArray(
-							[
-								A2($elm$core$Platform$Cmd$map, $author$project$Main$MsgCounterA, aCmd),
-								A2($elm$core$Platform$Cmd$map, $author$project$Main$MsgCounterB, bCmd)
-							])));
+					$author$project$Effect$effectToCmd(
+						$author$project$Effect$batch(
+							_List_fromArray(
+								[
+									A2($author$project$Effect$map, $author$project$Main$MsgCounterA, aCmd),
+									A2($author$project$Effect$map, $author$project$Main$MsgCounterB, bCmd)
+								]))));
 			default:
 				var _v5 = A2($author$project$Counter$update, $author$project$Counter$Randomize, model.m);
 				var counterB = _v5.a;
@@ -5473,12 +5526,13 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{l: counterA, m: counterB}),
-					$elm$core$Platform$Cmd$batch(
-						_List_fromArray(
-							[
-								A2($elm$core$Platform$Cmd$map, $author$project$Main$MsgCounterA, aCmd),
-								A2($elm$core$Platform$Cmd$map, $author$project$Main$MsgCounterB, bCmd)
-							])));
+					$author$project$Effect$effectToCmd(
+						$author$project$Effect$batch(
+							_List_fromArray(
+								[
+									A2($author$project$Effect$map, $author$project$Main$MsgCounterA, aCmd),
+									A2($author$project$Effect$map, $author$project$Main$MsgCounterB, bCmd)
+								]))));
 		}
 	});
 var $author$project$Main$MsgRandomizeAll = {$: 3};
